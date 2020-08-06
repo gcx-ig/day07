@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>人员添加</title>
+    <script src="node_modules/vue/dist/vue.js"></script>
+    <script src="axios.js"></script>
+</head>
+<body>
+    <div id="app">
+        姓名:<input v-model="emp.name"><br>
+        性别:<input type="radio"  v-model="emp.sex" value="1">男<input type="radio"  v-model="emp.sex"  value="0">女<br>
+        年龄:<input v-model="emp.age"><br>
+        生日:<input type="date" v-model="emp.birthday"><br>
+        部门:
+        <select v-model="emp.did">
+                <option value="0">--请选择--</option>
+                <option v-for="dept in deptList" :value="dept.id">{{dept.name}}</option>
+
+        </select>
+
+        <br>
+        <button @click="add()">保存</button>
+    </div>
+</body>
+<script>
+    var app = new Vue({
+        el:"#app",
+        data:{
+            emp:{
+                did:0
+
+            },
+            deptList:[]
+        },
+        methods:{
+            formatter (thistime, fmt){
+                let $this = new Date(thistime)
+                let o = {
+                    'M+': $this.getMonth() + 1,
+                    'd+': $this.getDate(),
+                    'h+': $this.getHours(),
+                    'm+': $this.getMinutes(),
+                    's+': $this.getSeconds(),
+                    'q+': Math.floor(($this.getMonth() + 3) / 3),
+                    'S': $this.getMilliseconds()
+                }
+                var fmt;
+                if (/(y+)/.test(fmt)) {
+                    fmt = fmt.replace(RegExp.$1, ($this.getFullYear() + '').substr(4 - RegExp.$1.length))
+                }
+                for (var k in o) {
+                    if (new RegExp('(' + k + ')').test(fmt)) {
+                        fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length)))
+                    }
+                }
+                return fmt
+            },
+            save(){
+
+                axios.post("http://localhost:8080/ssmVue/emp/save.do",this.emp ).then(function (res) {
+
+                    location.href="show.html"
+                })
+
+            }
+
+        },
+
+        created(){
+
+            var that = this
+            if(location.search!=null){
+                axios.get("http://localhost:8080/ssmVue/emp/findById.do"+location.search).then(function (res) {
+                    that.emp=res.data;
+                    that.emp.bitthday=that.formatter(that.emp.bitthday,"yyyy-MM-dd")
+                });
+            }
+
+
+            axios.get("http://localhost:8080/ssmVue/dept/findDeptAll.do").then(function (res) {
+                that.deptList = res.data;
+            });
+
+        }
+    });
+
+</script>
+</html>
